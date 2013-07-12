@@ -80,25 +80,21 @@ var clone = function(fn) {
 if(require.main == module) {
     program
         .option('-c, --checks <checksfile>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
-        .option('-f, --file <htmlfile>', 'Path to index.html', clone(assertFileExists), false)
-	.option('-u, --url <urlfile>', 'Path to url', clone(assertUrlExists), false)
+        .option('-f, --file <htmlfile>', 'Path to index.html', false)
+	.option('-u, --url <urlfile>', 'Path to url', false)
         .parse(process.argv);
-    if (program.url) {
+    var checkJson;
+    if (program.url != false) {
 	rest.get(program.url).on('complete', function(result) {
-	    fs.writeFileSync("tempfile.html", result);
-	    var checkJson = checkHtmlFile("tempfile.html", program.checks);
-	    var outJson = JSON.stringify(checkJson, null, 4);
-	    console.log(outJson);
- 	});
-  } else if (program.file) {
-	var checkJson = checkHtmlFile(program.file, program.checks);
-      var outJson = JSON.stringify(checkJson, null, 4);
-      console.log(outJson);
+	    checkJson = checkUrlFile(result, program.checks);
+	});
+  } else if (program.file != false) {
+	checkJson = checkHtmlFile(program.file, program.checks);
     } else {
-	var checkJson = checkHtmlFile(HTMLFILE_DEFAULT, program.checks);
-	var outJson = JSON.stringify(checkJson, null, 4);
-	console.log(outJson);
+	checkJson = checkHtmlFile(HTMLFILE_DEFAULT, program.checks);
   }
+    var outJson = JSON.stringify(checkJson, null, 4);
+    console.log(outJson);
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
